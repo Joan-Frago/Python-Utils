@@ -40,7 +40,8 @@ print(data)
 # CSV Handling
 """
 iFile="tests/testCSV.csv"
-utils = Utils(iFile)
+delimiter=","
+utils = Utils(iFile,adelimiter=delimiter)
 dictCSV = utils.readCSV()
 print(dictCSV)
 """

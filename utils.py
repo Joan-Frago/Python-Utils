@@ -3,7 +3,7 @@ import csv
 from datetime import datetime
 
 class Utils:
-    def __init__(self, afile:str = None, acontent:str = None, aUrl:str = None, headers:dict = None, body:dict = None, dateTime = None, timestamp:str = None, timeZone = None):
+    def __init__(self, afile:str = None, acontent:str = None, aUrl:str = None, headers:dict = None, body:dict = None, dateTime = None, timestamp:str = None, timeZone = None, adelimiter:str = None):
         self.afile = afile
         self.acontent = acontent
         self.aUrl = aUrl
@@ -12,7 +12,8 @@ class Utils:
         self.dateTime = dateTime
         self.timestamp = timestamp
         self.timeZone = timeZone
-    
+        self.adelimiter = adelimiter
+
     # Read a File
     def readFile(self):
         try:
@@ -62,7 +63,7 @@ class Utils:
         try:
             csvDict = []
             with open(self.afile,mode="r") as file:
-                csv2dict = csv.DictReader(file,delimiter=",")
+                csv2dict = csv.DictReader(file,self.adelimiter)
                 for row in csv2dict:
                     csvDict.append(row)
             return csvDict
