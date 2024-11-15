@@ -46,13 +46,30 @@ dictCSV = utils.readCSV()
 print(dictCSV)
 """
 
+"""
 # Converting date to timestamp.
 dtTime = datetime.now()
 utils = Utils(dateTime=dtTime)
 timestamp = utils.Date2Timestamp()
 print(timestamp)
-
+"""
+""" 
 # Converting timestamp to date
 utils = Utils(timestamp=timestamp)
 date = utils.Timestamp2Date()
 print(date)
+ """
+""" 
+timestamp = 1710522818
+
+# Calculate time Diff
+utils = Utils(timeStamp=timestamp)
+diff = utils.TimestampTimeDiff()
+print(f"Difference in timestamp {diff}")
+
+date = datetime.now()
+utils = Utils(dateTime=date)
+diff = utils.DateTimeDiff()
+print(f"Difference in human date {diff}")
+ """
+

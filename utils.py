@@ -3,14 +3,14 @@ import csv
 from datetime import datetime
 
 class Utils:
-    def __init__(self, afile:str = None, acontent:str = None, aUrl:str = None, headers:dict = None, body:dict = None, dateTime = None, timestamp:str = None, timeZone = None, adelimiter:str = None):
+    def __init__(self, afile:str = None, acontent:str = None, aUrl:str = None, headers:dict = None, body:dict = None, dateTime = None, timeStamp:str = None, timeZone = None, adelimiter:str = None):
         self.afile = afile
         self.acontent = acontent
         self.aUrl = aUrl
         self.headers = headers
         self.body = body
         self.dateTime = dateTime
-        self.timestamp = timestamp
+        self.timeStamp = timeStamp
         self.timeZone = timeZone
         self.adelimiter = adelimiter
 
@@ -77,5 +77,19 @@ class Utils:
         return timestamp
 
     def Timestamp2Date(self):
-        date = datetime.fromtimestamp(self.timestamp,tz=self.timeZone)
+        date = datetime.fromtimestamp(self.timeStamp,tz=self.timeZone)
         return date
+
+    def TimestampTimeDiff(self):
+        iTime = datetime.now()
+        utils = Utils(dateTime=iTime)
+        iTime = utils.Date2Timestamp()
+        timeDiff = iTime - self.timeStamp
+
+        return timeDiff
+    
+    def DateTimeDiff(self):
+        iTime = datetime.now()
+        timeDiff = iTime - self.dateTime
+
+        return timeDiff    
