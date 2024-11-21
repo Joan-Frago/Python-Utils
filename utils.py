@@ -3,7 +3,7 @@ import csv
 from datetime import datetime
 
 class Utils:
-    def __init__(self, afile:str = None, acontent:str = None, aUrl:str = None, headers:dict = None, body:dict = None, dateTime = None, timeStamp:str = None, timeZone = None, adelimiter:str = None):
+    def __init__(self, afile:str = None, acontent:str = None, aUrl:str = None, headers:dict = None, body:dict = None, dateTime = None, timeStamp:str = None, timeZone = None, adelimiter:str = None, fileMode:str = None, newLine:bool = False):
         self.afile = afile
         self.acontent = acontent
         self.aUrl = aUrl
@@ -13,6 +13,8 @@ class Utils:
         self.timeStamp = timeStamp
         self.timeZone = timeZone
         self.adelimiter = adelimiter
+        self.fileMode = fileMode
+        self.newLine = newLine
 
     # Read a File
     def readFile(self):
@@ -30,8 +32,8 @@ class Utils:
     def writeFile(self):
         try:
             if self.afile != "":
-                with open(self.afile,"w") as file:
-                    file.write(self.acontent)
+                with open(self.afile,self.fileMode) as file:
+                    file.write(f"{self.acontent}{self.newLine}")
             else:
                 return "Please provide a path for file reading"
         except IOError as e:
@@ -67,13 +69,11 @@ class Utils:
                 for row in csv2dict:
                     csvDict.append(row)
             return csvDict
-
         except Exception as e:
             return e
     
     def Date2Timestamp(self):
-        timestamp = int(datetime.timestamp(self.dateTime))
-
+        timestamp = datetime.timestamp(self.dateTime)
         return timestamp
 
     def Timestamp2Date(self):
@@ -82,9 +82,7 @@ class Utils:
 
     def TimestampTimeDiff(self):
         iTime = datetime.now()
-        utils = Utils(dateTime=iTime)
-        iTime = utils.Date2Timestamp()
-        timeDiff = iTime - self.timeStamp
+        timeDiff = datetime.timestamp(iTime) - self.timeStamp
 
         return timeDiff
     
