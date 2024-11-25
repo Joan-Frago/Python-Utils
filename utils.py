@@ -30,10 +30,12 @@ class Utils:
 
     # Write a File
     def writeFile(self):
+        if self.newLine == True:
+            newLine="\n"
         try:
             if self.afile != "":
                 with open(self.afile,self.fileMode) as file:
-                    file.write(f"{self.acontent}{self.newLine}")
+                    file.write(f"{self.acontent}{newLine}")
             else:
                 return "Please provide a path for file reading"
         except IOError as e:
@@ -82,7 +84,8 @@ class Utils:
 
     def TimestampTimeDiff(self):
         iTime = datetime.now()
-        timeDiff = datetime.timestamp(iTime) - self.timeStamp
+        iTs = datetime.timestamp(iTime)
+        timeDiff = iTs - self.timeStamp
 
         return timeDiff
     
