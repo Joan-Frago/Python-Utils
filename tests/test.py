@@ -11,7 +11,7 @@ iFile = "tests/testFile.txt"
 iContents = "hola\nhola\nhola  hola"
 iUrl = "https://api.github.com/users/python"
 body = {
-    "name" : "Joan Frago",
+    "name" : "Joan Frago Jiménez",
     "age" : 18
 }
 headers = {
