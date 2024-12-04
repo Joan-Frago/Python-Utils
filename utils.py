@@ -2,95 +2,78 @@ import requests
 import csv
 from datetime import datetime
 
-class Utils:
-    def __init__(self, afile:str = None, acontent:str = None, aUrl:str = None, headers:dict = None, body:dict = None, dateTime = None, timeStamp:str = None, timeZone = None, adelimiter:str = None, fileMode:str = None, newLine:bool = False):
-        self.afile = afile
-        self.acontent = acontent
-        self.aUrl = aUrl
-        self.headers = headers
-        self.body = body
-        self.dateTime = dateTime
-        self.timeStamp = timeStamp
-        self.timeZone = timeZone
-        self.adelimiter = adelimiter
-        self.fileMode = fileMode
-        self.newLine = newLine
-
-    # Read a File
-    def readFile(self):
-        try:
-            if self.afile != "":
-                with open(self.afile,"r") as file:
-                    content=file.read()
-                return content
-            else:
-                return "Please provide a path for file reading"
-        except IOError as e:
-            return f"Could not read {self.afile} contents due to {e}"
-
-    # Write a File
-    def writeFile(self):
-        if self.newLine == True:
-            newLine="\n"
-        try:
-            if self.afile != "":
-                with open(self.afile,self.fileMode) as file:
-                    file.write(f"{self.acontent}{newLine}")
-            else:
-                return "Please provide a path for file reading"
-        except IOError as e:
-            return f"Could not write to {self.afile} due to {e}"
-
-    def getJsonData(self):
-        try:
-            response = requests.get(self.aUrl, self.headers)
-            if response.status_code == 200:
-                data = response.json()
-            else:
-                return f"Error: {response.status_code}"
-            return data
-        except Exception as e:
-            return f"ERROR: {e}"
-        
-    def postJsonData(self):
-        try:
-            response = requests.post(self.aUrl, json=self.body)
-            if response.status_code == 200:
-                data = response.json()
-            else:
-                return f"Error: {response.status_code}"
-            return data
-        except Exception as e:
-            return f"ERROR: {e}"
-    
-    def readCSV(self):
-        try:
-            csvDict = []
-            with open(self.afile,mode="r") as file:
-                csv2dict = csv.DictReader(file,self.adelimiter)
-                for row in csv2dict:
-                    csvDict.append(row)
-            return csvDict
-        except Exception as e:
-            return e
-    
-    def Date2Timestamp(self):
-        timestamp = datetime.timestamp(self.dateTime)
-        return timestamp
-
-    def Timestamp2Date(self):
-        date = datetime.fromtimestamp(self.timeStamp,tz=self.timeZone)
-        return date
-
-    def TimestampTimeDiff(self):
-        iTime = datetime.now()
-        iTs = datetime.timestamp(iTime)
-        timeDiff = iTs - self.timeStamp
-
-        return timeDiff
-    
-    def DateTimeDiff(self):
-        iTime = datetime.now()
-        timeDiff = iTime - self.dateTime
-
-        return timeDiff    
+# Read a File
+def readFile(aFile:str):
+    try:
+        if aFile != "":
+            with open(aFile,"r") as file:
+                content=file.read()
+            return content
+        else:
+            return "Please provide a path for file reading"
+    except IOError as e:
+        return f"Could not read {aFile} contents due to {e}"
+# Write a File
+def writeFile(aFile:str,aContent:str,fileMode="w",newLine:bool=False):
+    if newLine == True:
+        newLine="\n"
+    try:
+        if aFile != "":
+            with open(aFile,fileMode) as file:
+                file.write(f"{aContent}{newLine}")
+        else:
+            return "Please provide a path for file reading"
+    except IOError as e:
+        return f"Could not write to {aFile} due to {e}"
+# Get Json Data
+def getJsonData(aUrl:str,headers=None):
+    try:
+        response = requests.get(aUrl,headers)
+        if response.status_code == 200:
+            data = response.json()
+        else:
+            return f"Error: {response.status_code}"
+        return data
+    except Exception as e:
+        return f"ERROR: {e}"
+# Post Json Data
+def postJsonData(aUrl:str,body:str):
+    try:
+        response = requests.post(aUrl,body)
+        if response.status_code == 200:
+            data = response.json()
+        else:
+            return f"Error: {response.status_code}"
+        return data
+    except Exception as e:
+        return f"ERROR: {e}"
+# Read a CSV
+def readCSV(aFile:str,aDelimiter=None):
+    try:
+        csvDict = []
+        with open(aFile,mode="r") as file:
+            csv2dict = csv.DictReader(file,aDelimiter)
+            for row in csv2dict:
+                csvDict.append(row)
+        return csvDict
+    except Exception as e:
+        return e
+# Convert Date to Timestamp
+def Date2Timestamp(dateTime:str):
+    timestamp = datetime.timestamp(dateTime)
+    return timestamp
+# Convert Timestamp to Date
+def Timestamp2Date(timeStamp:int,timeZone=None):
+    date = datetime.fromtimestamp(timeStamp,timeZone)
+    return date
+# Calculate the difference between two timestamp
+def TimestampTimeDiff(timeStamp:int):
+    iTime = datetime.now()
+    iTs = datetime.timestamp(iTime)
+    timeDiff = iTs - timeStamp
+    return timeDiff
+# Calculate the difference between two date times
+def DateTimeDiff(dateTime):
+    iTime = datetime.now()
+    timeDiff = iTime - dateTime
+    return timeDiff
