@@ -3,7 +3,7 @@ import csv
 from datetime import datetime
 
 # Read a File
-def readFile(aFile:str):
+def readFile(aFile:str) -> str:
     try:
         if aFile != "":
             with open(aFile,"r") as file:
@@ -48,7 +48,7 @@ def postJsonData(aUrl:str,body:str):
     except Exception as e:
         return f"ERROR: {e}"
 # Read a CSV
-def readCSV(aFile:str,aDelimiter=None):
+def csv2Dict(aFile:str,aDelimiter=None) -> dict:
     try:
         csvDict = []
         with open(aFile,mode="r") as file:
@@ -59,7 +59,7 @@ def readCSV(aFile:str,aDelimiter=None):
     except Exception as e:
         return e
 # Convert Date to Timestamp
-def Date2Timestamp(dateTime:str):
+def Date2Timestamp(dateTime:str) -> float:
     timestamp = datetime.timestamp(dateTime)
     return timestamp
 # Convert Timestamp to Date
@@ -67,13 +67,26 @@ def Timestamp2Date(timeStamp:int,timeZone=None):
     date = datetime.fromtimestamp(timeStamp,timeZone)
     return date
 # Calculate the difference between two timestamp
-def TimestampTimeDiff(timeStamp:int):
+def TimestampTimeDiff(timeStamp:int) -> int:
     iTime = datetime.now()
     iTs = datetime.timestamp(iTime)
     timeDiff = iTs - timeStamp
     return timeDiff
 # Calculate the difference between two date times
-def DateTimeDiff(dateTime):
+def DateTimeDiff(dateTime:int) -> int:
     iTime = datetime.now()
     timeDiff = iTime - dateTime
     return timeDiff
+# Check if a number is prime
+def IsPrime(aNum:int) -> bool:
+    try:
+        if isinstance(aNum,int):
+            for i in range(1, aNum):
+                if aNum % i == 0 and i != aNum:
+                    return True
+                else:
+                    return False
+        else:
+            print("Please provide an int to check if number is prime")
+    except Exception as e:
+        print(f"Error cheking if number is prime: {e}")

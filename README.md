@@ -10,3 +10,10 @@ Here are some ideas:
 7. Retry Decorator
 8. Generate SHA-256 Hash
 9. Encrypy and Decrypt strings
+
+## Import Module
+```python
+# Import the module
+sys.path.append(os.path.dirname(os.path.dirname("utils/utils.py")))
+from utils import *
+```
