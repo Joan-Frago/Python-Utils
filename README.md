@@ -14,6 +14,6 @@ Here are some ideas:
 ## Import Module
 ```python
 # Import the module
-sys.path.insert(0,"../../../Python-Utils/utils/")
+sys.path.append(os.path.dirname(os.path.dirname("utils/utils.py")))
 from utils import *
 ```
