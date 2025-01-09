@@ -3,6 +3,10 @@
 import requests
 import csv
 from datetime import datetime
+import sys
+import os
+import random
+from openpyxl import load_workbook
 
 # Read a File
 def readFile(aFile:str) -> str:
@@ -18,17 +22,19 @@ def readFile(aFile:str) -> str:
 # Write a File
 def writeFile(aFile:str,aContent:str,fileMode="w",newLine:bool=False):
     if newLine == True:
-        newLine="\n"
+        aNewLine="\n"
+    else:
+        aNewLine=""
     try:
         if aFile != "":
             with open(aFile,fileMode) as file:
-                file.write(f"{aContent}{newLine}")
+                file.write(f"{aContent}{aNewLine}")
         else:
             return "Please provide a path for file reading"
     except IOError as e:
         return f"Could not write to {aFile} due to {e}"
 # Get Json Data
-def getJsonData(aUrl:str,headers=None):
+def getJsonData(aUrl:str,headers=None) -> any:
     try:
         response = requests.get(aUrl,headers)
         if response.status_code == 200:
@@ -39,7 +45,7 @@ def getJsonData(aUrl:str,headers=None):
     except Exception as e:
         return f"ERROR: {e}"
 # Post Json Data
-def postJsonData(aUrl:str,body:str):
+def postJsonData(aUrl:str,body:str) -> any:
     try:
         response = requests.post(aUrl,body)
         if response.status_code == 200:
@@ -75,7 +81,7 @@ def TimestampTimeDiff(timeStamp:int) -> int:
     timeDiff = iTs - timeStamp
     return timeDiff
 # Calculate the difference between two date times
-def DateTimeDiff(dateTime:int) -> int:
+def DateTimeTimeDiff(dateTime:int) -> int:
     iTime = datetime.now()
     timeDiff = iTime - dateTime
     return timeDiff
@@ -92,3 +98,24 @@ def IsPrime(aNum:int) -> bool:
             print("Please provide an int to check if number is prime")
     except Exception as e:
         print(f"Error cheking if number is prime: {e}")
+# Calculate the factorial of a number
+def Factorial(aNum:int) -> int:
+    try:
+        if aNum < 0:
+            raise ValueError("Factorial is not defined for negative numbers.")
+        if aNum == 0 or aNum == 1:
+            return 1
+        result = 1
+        for i in range(2, aNum + 1):
+            result *= i
+        return result
+    except Exception as e:
+        print(f"Could not calculate the factorial of number {aNum}. Error: {e}")
+# Load an excel file
+def loadExcel(aFile:str, aSheet:str = "") -> any:
+    wb = load_workbook(aFile)
+    if aSheet != "":
+        ws = wb[aSheet]
+    else:
+        ws = wb.active()
+    return ws
