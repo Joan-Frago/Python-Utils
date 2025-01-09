@@ -8,6 +8,9 @@ bin-release/
 .settings/
 .vscode/
 
+# Python virtual environment
+venv3.10/
+
 # Executables
 *.swf
 *.air
