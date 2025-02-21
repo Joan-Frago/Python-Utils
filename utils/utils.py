@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/bin/python3
 
 import requests
 import csv
@@ -7,6 +7,41 @@ import sys
 import os
 import random
 from openpyxl import load_workbook
+from time import sleep,time
+
+class Logger:
+    def __init__(self, log_path:str="log/pylog.log"):
+        self.log_file = log_path
+
+    def write_log(self, type_log:str = "ERROR", aLog:str = ""):
+        if not os.path.exists(self.log_file):
+            try:
+                os.mkdir(self.log_file)
+            except Exception as e:
+                print(f"Error creating log file: {e}")
+                sys.exit()
+        with open(self.log_file,"a") as file:
+            text = f"{datetime.now()} {type_log} {aLog}\n"
+            file.write(text)
+
+    def error(self,log:str):
+        self.write_log(type_log="ERROR   ",aLog=log)
+    def warning(self,log:str):
+        self.write_log(type_log="WARNING ",aLog=log)
+    def info(self,log:str):
+        self.write_log(type_log="INFO    ",aLog=log)
+
+class Timer:
+    def __init__(self):
+        self.start_time = time()
+    def stop(self):
+        finish_time=time()
+        return self.start_time - finish_time
+
+def clear_screen():
+    os.system("clear")
+def wait(seconds:float):
+    sleep(seconds)
 
 # Read a File
 def readFile(aFile:str) -> str:
