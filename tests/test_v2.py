@@ -14,6 +14,10 @@ writeFile(iFile,iContent,newLine=True)
 outFile = readFile(iFile)
 print(outFile)"""
 
-num = random.randint(1,100000)
+"""num = random.randint(1,100000)
 prime = IsPrime(num)
-print(prime)
+print(prime)"""
+
+num = 14
+factorialOfNum = getFactorial(num)
+print(factorialOfNum)
