@@ -1,7 +1,5 @@
 import sys
 import os
-from datetime import datetime
-import random
 
 # Import the module
 sys.path.append(os.path.dirname(os.path.dirname("utils/utils.py")))
@@ -18,6 +16,6 @@ print(outFile)"""
 prime = IsPrime(num)
 print(prime)"""
 
-num = 14
-factorialOfNum = getFactorial(num)
-print(factorialOfNum)
+factOfNum = Factorial(10)
+print(factOfNum)
+
