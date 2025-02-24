@@ -34,9 +34,10 @@ class Logger:
 class Timer:
     def __init__(self):
         self.start_time = time()
+        self.finish_time = None
     def stop(self):
-        finish_time=time()
-        return self.start_time - finish_time
+        self.finish_time=time() - self.start_time
+        return self.finish_time
 
 def clear_screen():
     os.system("clear")
