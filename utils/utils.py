@@ -6,6 +6,7 @@ import os
 import random
 from openpyxl import load_workbook
 from time import sleep,time
+import mysql.connector
 
 class Logger:
     def __init__(self, log_path:str="log/pylog.log"):
@@ -36,6 +37,37 @@ class Timer:
     def stop(self):
         self.finish_time=time() - self.start_time
         return self.finish_time
+
+class DataBase:
+    def __init__(self,Host:str,User:str,Password:str,DataBase:str):
+        self.aHost = Host
+        self.aUser = User
+        self.aPassword = Password
+        self.aDataBase = DataBase
+        self.connection = None
+        self.cursor = None
+    def connect(self):
+        self.connection = mysql.connector.connect(
+            host=self.aHost,
+            user=self.aUser,
+            password=self.aPassword,
+            database=self.aDataBase
+        )
+        self.cursor = self.connection.cursor(dictionary=True)
+        return self.connection,self.cursor
+    def close(self):
+        self.connection.close()
+        self.cursor.close()
+    def fetchdata(self):
+        if self.cursor is None: return []
+        try:
+            data = self.cursor.fetchall()
+            return data if isinstance(data, list) else []
+        except Exception as e:
+            err = []
+            err.append(str(e))
+            return err
+            
 
 def clear_screen():
     os.system("clear")
