@@ -36,7 +36,7 @@ class Timer:
         self.finish_time = None
     def stop(self):
         self.finish_time=time() - self.start_time
-        return self.finish_time
+        return round(self.finish_time,3)
 
 class DataBase:
     def __init__(self,Host:str,User:str,Password:str,DataBase:str):
