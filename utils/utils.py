@@ -19,9 +19,9 @@ class Logger:
             except Exception as e:
                 print(f"Error creating log file: {e}")
                 sys.exit()
-        with open(self.log_file,"a") as file:
-            text = f"{datetime.now()} {type_log} {aLog}\n"
-            file.write(text)
+
+        text = f"{datetime.now()} {type_log} {aLog}"
+        writeFile(aFile=self.log_file,aContent=text,fileMode="a",newLine=True)
 
     def error(self,log:str):
         self.write_log(type_log="ERROR   ",aLog=log)
