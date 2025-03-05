@@ -36,7 +36,19 @@ class Timer:
         self.finish_time = None
     def stop(self):
         self.finish_time=time() - self.start_time
-        return round(self.finish_time,3)
+
+        if self.finish_time < 60:
+            final_time = str(round(self.finish_time,3)) + " seconds"
+        elif self.finish_time >= 60 and self.finish_time < 3600:
+            final_time = self.finish_time / 60
+            final_time = str(round(final_time,3)) + " minutes"
+        elif self.finish_time >= 3600 and self.finish_time < 86400:
+            final_time = self.finish_time / 3600
+            final_time = str(round(final_time,3)) + " hours"
+        elif self.finish_time >= 86400:
+            final_time = self.finish_time / 86400
+            final_time = str(round(final_time,3))
+        return final_time
 
 class DataBase:
     def __init__(self,Host:str,User:str,Password:str,DataBase:str):
