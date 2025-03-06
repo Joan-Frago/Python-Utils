@@ -79,6 +79,16 @@ class DataBase:
             err = []
             err.append(str(e))
             return err
+    def execute(self,aQuery,aParams=None):
+        try:
+            if aParams: self.cursor.execute(aQuery,aParams)
+            else:
+                self.cursor.execute(aQuery)
+            self.connection.commit()
+            return ""
+        except Exception as e:
+            err = str(e) + ":" + str(sys.exc_info())
+            return err
             
 
 def clear_screen():
