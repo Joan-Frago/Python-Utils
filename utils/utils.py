@@ -59,14 +59,18 @@ class DataBase:
         self.connection = None
         self.cursor = None
     def connect(self):
-        self.connection = mysql.connector.connect(
-            host=self.aHost,
-            user=self.aUser,
-            password=self.aPassword,
-            database=self.aDataBase
-        )
-        self.cursor = self.connection.cursor(dictionary=True)
-        return self.connection,self.cursor
+        try:
+            self.connection = mysql.connector.connect(
+                host=self.aHost,
+                user=self.aUser,
+                password=self.aPassword,
+                database=self.aDataBase
+            )
+            self.cursor = self.connection.cursor(dictionary=True)
+        except Exception as e:
+            err = str(e) + ":" + str(sys.exc_info)
+            return err
+        return ""
     def close(self):
         self.connection.close()
         self.cursor.close()
