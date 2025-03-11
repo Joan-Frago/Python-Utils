@@ -1,6 +1,6 @@
 import requests
 import csv
-from datetime import datetime
+from datetime import datetime,timedelta
 import sys
 import os
 import random
@@ -11,6 +11,26 @@ import mysql.connector
 class Logger:
     def __init__(self, log_path:str="log/pylog.log"):
         self.log_file = log_path
+    
+    @staticmethod
+    def on_register_func_call(func):
+        def wrapper(self,*args,**kwargs):
+            self.log_file_rotation()
+            return func(self,*args,**kwargs)
+        return wrapper
+    
+    @staticmethod
+    def calc_log_file_rotation(aFile):
+        pass
+    
+    def log_file_rotation(self):
+        date = GetTime()
+        creation_time = datetime.fromtimestamp(os.path.getctime(self.log_file))
+        time_diff = date - creation_time
+
+        if time_diff > timedelta(days=7):
+            # create new archived log files
+            self.calc_log_file_rotation(aFile=self.log_file)
 
     def write_log(self, type_log:str = "ERROR", aLog:str = ""):
         if not os.path.exists(self.log_file):
@@ -47,7 +67,7 @@ class Timer:
             final_time = str(round(final_time,3)) + " hours"
         elif self.finish_time >= 86400:
             final_time = self.finish_time / 86400
-            final_time = str(round(final_time,3))
+            final_time = str(round(final_time,3)) + " days"
         return final_time
 
 class DataBase:
@@ -99,6 +119,10 @@ def clear_screen():
     os.system("clear")
 def wait(seconds:float):
     sleep(seconds)
+def GetTime():
+    return datetime.now()
+def GetFuncName(aFunc):
+    return aFunc.__name__
 
 # Read a File
 def readFile(aFile:str) -> str:
