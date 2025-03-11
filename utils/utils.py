@@ -88,12 +88,17 @@ class DataBase:
             )
             self.cursor = self.connection.cursor(dictionary=True)
         except Exception as e:
-            err = str(e) + ":" + str(sys.exc_info)
+            err = str(e) + ":" + str(sys.exc_info())
             return err
         return ""
     def close(self):
-        self.connection.close()
-        self.cursor.close()
+        try:
+            self.connection.close()
+            self.cursor.close()
+            return ""
+        except Exception as e:
+            err = str(e) + ":" + str(sys.exc_info())
+            return err
     def fetchdata(self):
         if self.cursor is None: return []
         try:
