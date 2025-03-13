@@ -49,6 +49,13 @@ class Logger:
         self.write_log(type_log="WARNING ",aLog=log)
     def info(self,log:str):
         self.write_log(type_log="INFO    ",aLog=log)
+    
+    def exception_handler(self,exc_type,exc_value,exc_traceback):
+        err="Unhandled Exception : "
+        err+=str(exc_type)+" : "
+        err+=str(exc_value)+" : "
+        err+=str(exc_traceback)
+        self.error(err)
 
 class Timer:
     def __init__(self):
@@ -240,3 +247,7 @@ def loadExcel(aFile:str, aSheet:str = "") -> any:
     else:
         ws = wb.active()
     return ws
+# Calculate a random number
+def random_number(aInterval:list[2]):
+    num=random.randrange(start=aInterval[0],stop=aInterval[1])
+    return num
