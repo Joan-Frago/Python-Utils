@@ -11,6 +11,10 @@ import mysql.connector
 class Logger:
     def __init__(self, log_path:str="log/pylog.log"):
         self.log_file = log_path
+        self.log_path = self.get_log_path()
+    
+    def get_log_path(self):
+        return os.path.dirname(self.log_file)
     
     @staticmethod
     def on_register_func_call(func):
@@ -35,10 +39,9 @@ class Logger:
     def write_log(self, type_log:str = "ERROR", aLog:str = ""):
         if not os.path.exists(self.log_file):
             try:
-                os.mkdir(self.log_file)
+                os.mkdir(self.log_path)
             except Exception as e:
                 print(f"Error creating log file: {e}")
-                sys.exit()
 
         text = f"{datetime.now()} {type_log} {aLog}"
         writeFile(aFile=self.log_file,aContent=text,fileMode="a",newLine=True)
@@ -49,6 +52,8 @@ class Logger:
         self.write_log(type_log="WARNING ",aLog=log)
     def info(self,log:str):
         self.write_log(type_log="INFO    ",aLog=log)
+    def debug(self,log:str):
+        self.write_log(type_log="DEBUG   ",aLog=log)
     
     def exception_handler(self,exc_type,exc_value,exc_traceback):
         err="Unhandled Exception : "
