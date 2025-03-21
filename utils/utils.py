@@ -8,6 +8,16 @@ from openpyxl import load_workbook
 from time import sleep,time
 import mysql.connector
 
+if sys.version_info < (3,9):
+    from typing import List,Dict,Union
+    ListType=List
+    DictType=Dict
+    UnionType=Union
+else:
+    ListType=list
+    DictType=dict
+    UnionType=lambda *args:args[0] | args[1]
+
 class Logger:
     def __init__(self, log_path:str="log/pylog.log"):
         self.log_file = log_path
@@ -253,6 +263,6 @@ def loadExcel(aFile:str, aSheet:str = "") -> any:
         ws = wb.active()
     return ws
 # Calculate a random number
-def random_number(aInterval:list[2]):
+def random_number(aInterval:ListType[int]):
     num=random.randrange(start=aInterval[0],stop=aInterval[1])
     return num
