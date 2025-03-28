@@ -10,6 +10,7 @@ bin-release/
 
 # Python virtual environment
 venv3.10/
+venv310/
 
 # Executables
 *.swf

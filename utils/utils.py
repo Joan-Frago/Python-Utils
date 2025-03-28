@@ -12,6 +12,7 @@ class Logger:
     def __init__(self, log_path:str="log/pylog.log"):
         self.log_file = log_path
         self.log_path = self.get_log_path()
+        self.rotate_log = False
     
     def get_log_path(self):
         return os.path.dirname(self.log_file)
@@ -19,27 +20,62 @@ class Logger:
     @staticmethod
     def on_register_func_call(func):
         def wrapper(self,*args,**kwargs):
-            self.log_file_rotation()
+            if self.rotate_log:
+                self.log_file_rotation()
             return func(self,*args,**kwargs)
         return wrapper
+
+    def get_last_log(self) -> int:
+        iFunc=GetFuncName(self.get_last_log)
+        try:
+            all_logs=os.scandir(self.log_path)
+            all_logs_lst=[i.name for i in all_logs]
+            return len(all_logs_lst)
+            
+        except Exception as e:
+            err=iFunc + ":" + str(sys.exc_info()) + ":" + str(e)
+            self.error(err)
+            raise Exception(err)
     
-    @staticmethod
-    def calc_log_file_rotation(aFile):
-        pass
+    def exec_log_file_rotation(self):
+        iFunc=GetFuncName(self.exec_log_file_rotation)
+        try:
+            last_num_log=self.get_last_log()
+            if last_num_log < 5:
+                if last_num_log == 1:
+                    self.log_file = self.log_file+str(1)
+                else:
+                    self.log_file = self.log_file[:-1]+str(last_num_log)
+            print(self.log_file)
+
+        except Exception as e:
+            err = iFunc + ":" + str(sys.exc_info()) + ":" + str(e)
+            self.error(err)
+            raise Exception(err)
     
     def log_file_rotation(self):
-        date = GetTime()
-        creation_time = datetime.fromtimestamp(os.path.getctime(self.log_file))
-        time_diff = date - creation_time
+        iFunc=GetFuncName(self.log_file_rotation)
+        try:
+            date = GetTime()
+            creation_time = datetime.fromtimestamp(os.path.getctime(self.log_file))
+            time_diff = date - creation_time
 
-        if time_diff > timedelta(days=7):
-            # create new archived log files
-            self.calc_log_file_rotation(aFile=self.log_file)
+            # debug
+            # time_diff = timedelta(days=10)
+            #
+            if time_diff > timedelta(days=7):
+                # create new archived log files
+                self.exec_log_file_rotation()
+        except Exception as e:
+            err = "Error in " + iFunc + ":" + str(sys.exc_info()) + ":" + str(e)
+            self.error(err)
+            raise Exception(err)
 
-    def write_log(self, type_log:str = "ERROR", aLog:str = ""):
+    @on_register_func_call
+    def write_log(self, aLog:str, type_log:str = "ERROR   "):
         if not os.path.exists(self.log_file):
             try:
-                os.mkdir(self.log_path)
+                os.makedirs(self.get_log_path(),exist_ok=True)
             except Exception as e:
                 print(f"Error creating log file: {e}")
 
@@ -61,6 +97,29 @@ class Logger:
         err+=str(exc_value)+" : "
         err+=str(exc_traceback)
         self.error(err)
+    
+    @staticmethod
+    def get_logger_type(aLogger):
+        if type(aLogger) == Logger:
+            return aLogger
+        else:
+            logger=Logger.DefaultLogger()
+            return logger
+
+    class DefaultLogger:
+        def write_log(self,type_log:str="ERROR   ",aLog:str="No output specified"):
+            text = f"{datetime.now()} {type_log} {aLog}"
+            print(text, file=sys.stdout, flush=True)
+
+        def error(self,log:str):
+            self.write_log(type_log="ERROR   ",aLog=log)
+        def warning(self,log:str):
+            self.write_log(type_log="WARNING ",aLog=log)
+        def info(self,log:str):
+            self.write_log(type_log="INFO    ",aLog=log)
+        def debug(self,log:str):
+            self.write_log(type_log="DEBUG   ",aLog=log)
+
 
 class Timer:
     def __init__(self):
@@ -133,7 +192,12 @@ class DataBase:
             
 
 def clear_screen():
-    os.system("clear")
+    try:
+        os.system("clear")
+    except Exception:
+        os.system("cls")
+    except Exception as e:
+        print("Could not clear screen because of: "+e)
 def wait(seconds:float):
     sleep(seconds)
 def GetTime():
