@@ -38,7 +38,7 @@ class Api:
                 try:
                     response=handler_function()
                     self.write(response)
-                    _logger.info(f"request on {handler_function.__name__}")
+                    # _logger.info(f"request on {handler_function.__name__}")
 
                 except Exception as e:
                     _logger.error("Can't add request: {}".format(e))
@@ -58,7 +58,7 @@ class Api:
                     # call handler func with url params and body
                     iRet = handler_function(data, **kwargs)
                     self.write(iRet)
-                    _logger.info(f"Post request on {handler_function.__name__}")
+                    # _logger.info(f"Post request on {handler_function.__name__}")
                 
                 except Exception as e:
                     err = "Error in post handler : " + str(sys.exc_info()) + " : " + str(e)
