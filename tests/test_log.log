@@ -35,3 +35,6 @@
 2025-03-28 17:06:49.634571 INFO     request on test
 2025-03-28 17:08:49.896926 INFO     Closed program
 2025-03-28 17:08:49.897085 DEBUG    Execution time: 2.144 minutes
+2025-03-31 16:54:19.662354 INFO     Started test api
+2025-03-31 16:54:29.485031 INFO     Closed program
+2025-03-31 16:54:29.485165 DEBUG    Execution time: 9.823 seconds

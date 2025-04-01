@@ -6,6 +6,7 @@ from tornado.web import Application, RequestHandler
 from tornado.ioloop import IOLoop
 
 import atexit
+import json
 
 sys.path.append("/opt/dev/Python-Utils/utils")
 from utils import Logger,Timer
@@ -43,6 +44,29 @@ class Api:
                     _logger.error("Can't add request: {}".format(e))
                     
         self.routes.append((path,DynamicHandler))
+    
+    def add_post_request(self, path:str, handler_function:Callable):
+        _logger = self.logger
+        class DynamicHandler(RequestHandler):
+            def post(self, **kwargs):
+                try:
+                    # Extract json body, if any, and url params
+                    body = self.request.body.decode("utf-8")
+                    json_body = self.request.headers.get("Content-Type") == "application/json"
+                    data = body if not json_body else json.loads(body)
+
+                    # call handler func with url params and body
+                    iRet = handler_function(data, **kwargs)
+                    self.write(iRet)
+                    _logger.info(f"Post request on {handler_function.__name__}")
+                
+                except Exception as e:
+                    err = "Error in post handler : " + str(sys.exc_info()) + " : " + str(e)
+                    _logger.error(err)
+                    self.set_status(500) # Internal server error
+                    self.write({"error": str(e)})
+        
+        self.routes.append((path, DynamicHandler))
 
     def init_app(self):
         try:
@@ -50,4 +74,4 @@ class Api:
             app.listen(port=self.iPort)
             IOLoop.instance().start()
         except KeyboardInterrupt:
-            pass
+            sys.exit("\n")
