@@ -12,12 +12,13 @@ sys.path.append("/opt/dev/Python-Utils/utils")
 from utils import Logger,Timer
 
 class Api:
-    def __init__(self,Port:int=8000,logger: Logger = None,init_message:str=None,exit_message:str=None):
+    def __init__(self,Port:int=8000,logger: Logger = None,init_message:str=None,exit_message:str=None,allowed_origins:List[str]=None):
         self.iPort = Port
         self.routes: List[Tuple[str,Callable]] = []
         self.logger = Logger.get_logger_type(aLogger=logger)
         self.init_message = init_message
         self.exit_message = exit_message
+        self.allowed_origins = allowed_origins or ["*"] # Default to allow all origins
 
         if self.init_message is not None:
             self.logger.info(init_message)
@@ -30,10 +31,21 @@ class Api:
             exc_time = self.timer.stop()
             self.logger.info("Closed program")
             self.logger.debug(f"Execution time: {exc_time}")
+
+    def add_cors_headers(self,handler):
+        origin = handler.request.headers.get("Origin","")
+        if "*" in self.allowed_origins or origin in self.allowed_origins:
+            handler.set_header("Access-Control-Allow-Origin", origin if origin else "*")
+            handler.set_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+            handler.set_header("Access-Control-Allow-Headers", "Content-Type, Authorization")
+            handler.set_header("Access-Control-Allow-Credentials", "true")
+
     
     def add_get_request(self, path:str, handler_function:Callable):
         _logger = self.logger
         class DynamicHandler(RequestHandler):
+            def set_default_headers(self):
+                self.application.api.add_cors_headers(self)
             def get(self):
                 try:
                     response=handler_function()
@@ -48,6 +60,8 @@ class Api:
     def add_post_request(self, path:str, handler_function:Callable):
         _logger = self.logger
         class DynamicHandler(RequestHandler):
+            def set_default_headers(self):
+                self.application.api.add_cors_headers(self)
             def post(self, **kwargs):
                 try:
                     # Extract json body, if any, and url params
