@@ -85,6 +85,7 @@ class Api:
     def init_app(self):
         try:
             app = Application(self.routes)
+            app.api = self
             app.listen(port=self.iPort)
             IOLoop.instance().start()
         except KeyboardInterrupt:
