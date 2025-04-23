@@ -33,13 +33,18 @@ class Api:
             self.logger.debug(f"Execution time: {exc_time}")
 
     def add_cors_headers(self,handler):
-        origin = handler.request.headers.get("Origin","")
-        if "*" in self.allowed_origins or origin in self.allowed_origins:
-            handler.set_header("Access-Control-Allow-Origin", origin if origin else "*")
-            handler.set_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-            handler.set_header("Access-Control-Allow-Headers", "Content-Type")
-            handler.set_header("Access-Control-Allow-Credentials", "true")
-
+        try:
+            origin = handler.request.headers.get("Origin","")
+            if "*" in self.allowed_origins or origin in self.allowed_origins:
+                handler.set_header("Access-Control-Allow-Origin", origin if origin else "*")
+                handler.set_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+                handler.set_header("Access-Control-Allow-Headers", "Content-Type")
+                handler.set_header("Access-Control-Allow-Credentials", "true")
+            else:
+                self.logger.error(f"Origin {origin} not allowed")
+        except Exception as e:
+            self.logger.error(f"Error in add_cors_headers: {e}")
+            handler.set_status(500)
     
     def add_get_request(self, path:str, handler_function:Callable):
         _logger = self.logger
@@ -58,6 +63,7 @@ class Api:
             def options(self):
                 self.application.api.add_cors_headers(self)
                 self.set_status(204)
+                self.finish()
                     
         self.routes.append((path,DynamicHandler))
     
@@ -87,6 +93,7 @@ class Api:
             def options(self):
                 self.application.api.add_cors_headers(self)
                 self.set_status(204)
+                self.finish()
         
         self.routes.append((path, DynamicHandler))
 
