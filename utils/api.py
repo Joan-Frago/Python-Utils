@@ -37,7 +37,7 @@ class Api:
         if "*" in self.allowed_origins or origin in self.allowed_origins:
             handler.set_header("Access-Control-Allow-Origin", origin if origin else "*")
             handler.set_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-            handler.set_header("Access-Control-Allow-Headers", "Content-Type, Authorization")
+            handler.set_header("Access-Control-Allow-Headers", "Content-Type")
             handler.set_header("Access-Control-Allow-Credentials", "true")
 
     
@@ -54,6 +54,10 @@ class Api:
 
                 except Exception as e:
                     _logger.error("Can't add request: {}".format(e))
+            
+            def options(self):
+                self.application.api.add_cors_headers(self)
+                self.set_status(204)
                     
         self.routes.append((path,DynamicHandler))
     
@@ -79,6 +83,10 @@ class Api:
                     _logger.error(err)
                     self.set_status(500) # Internal server error
                     self.write({"error": str(e)})
+            
+            def options(self):
+                self.application.api.add_cors_headers(self)
+                self.set_status(204)
         
         self.routes.append((path, DynamicHandler))
 
