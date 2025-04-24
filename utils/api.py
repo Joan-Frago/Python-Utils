@@ -60,7 +60,7 @@ class Api:
                 except Exception as e:
                     _logger.error("Can't add request: {}".format(e))
             
-            def options(self):
+            def options(self, **kwargs):
                 self.application.api.add_cors_headers(self)
                 self.set_status(204)
                 self.finish()
@@ -90,7 +90,7 @@ class Api:
                     self.set_status(500) # Internal server error
                     self.write({"error": str(e)})
             
-            def options(self):
+            def options(self, **kwargs):
                 self.application.api.add_cors_headers(self)
                 self.set_status(204)
                 self.finish()
