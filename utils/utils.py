@@ -1,6 +1,7 @@
 import requests
 import csv
 from datetime import datetime,timedelta
+import pytz
 import sys
 import os
 import random
@@ -113,23 +114,13 @@ class Logger:
         if type(aLogger) == Logger:
             return aLogger
         else:
-            logger=Logger.DefaultLogger()
+            logger=DefaultLogger()
             return logger
 
-    class DefaultLogger:
-        def write_log(self,type_log:str="ERROR   ",aLog:str="No output specified"):
-            text = f"{datetime.now()} {type_log} {aLog}"
-            print(text, file=sys.stdout, flush=True)
-
-        def error(self,log:str):
-            self.write_log(type_log="ERROR   ",aLog=log)
-        def warning(self,log:str):
-            self.write_log(type_log="WARNING ",aLog=log)
-        def info(self,log:str):
-            self.write_log(type_log="INFO    ",aLog=log)
-        def debug(self,log:str):
-            self.write_log(type_log="DEBUG   ",aLog=log)
-
+class DefaultLogger(Logger):
+    def write_log(self,type_log:str="ERROR   ",aLog:str="No output specified"):
+        text = f"{datetime.now()} {type_log} {aLog}"
+        print(text, file=sys.stdout, flush=True)
 
 class Timer:
     def __init__(self):
@@ -195,11 +186,9 @@ class DataBase:
             else:
                 self.cursor.execute(aQuery)
             self.connection.commit()
-            return ""
         except Exception as e:
             err = str(e) + ":" + str(sys.exc_info())
-            return err
-            
+            raise Exception(err)
 
 def clear_screen():
     try:
@@ -210,8 +199,42 @@ def clear_screen():
         print("Could not clear screen because of: "+e)
 def wait(seconds:float):
     sleep(seconds)
-def GetTime():
-    return datetime.now()
+def GetTime(aTimeZone:str="Europe/Madrid",accuracy:str="ml"):
+    """
+    ## Get the actual time
+
+    * **aTimezone** defaults to Europe/Madrid, but can be set to any pytz.timezone
+    * **accuracy** sets the accuracy for the time, defaults to milisecond:
+        * milisecond --> "ml"
+        * second --> "s"
+        * minute --> "mn"
+        * hour --> "h"
+        * day --> "d"
+        * month --> "m"
+        * year --> "y"
+        
+    """
+    # 2025-04-27 21:13:57.904277+02:00
+    try:
+        iTime=str(datetime.now(pytz.timezone(aTimeZone)))
+        match accuracy:
+            case "ml":
+                iTime=iTime[:-6]
+            case "s":
+                iTime=iTime[:-13]
+            case "mn":
+                iTime=iTime[:-16]
+            case "h":
+                iTime=iTime[:-19]
+            case "d":
+                iTime=iTime[:-22]
+            case "m":
+                iTime=iTime[:-25]
+            case "y":
+                iTime=iTime[:-28]
+        return iTime
+    except Exception as e:
+        raise
 def GetFuncName(aFunc):
     return aFunc.__name__
 

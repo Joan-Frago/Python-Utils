@@ -29,28 +29,36 @@ class Api:
     def atexit_register(self):
         if self.exit_message is not None:
             exc_time = self.timer.stop()
-            self.logger.info("Closed program")
-            self.logger.debug(f"Execution time: {exc_time}")
+            self.logger.info(self.exit_message)
+            self.logger.info(f"Execution time: {exc_time}")
 
     def add_cors_headers(self,handler):
         try:
-            origin = handler.request.headers.get("Origin","")
-            if "*" in self.allowed_origins or origin in self.allowed_origins:
+            origin = handler.request.headers.get("Origin",None)
+            if "*" in self.allowed_origins or (origin and origin in self.allowed_origins):
                 handler.set_header("Access-Control-Allow-Origin", origin if origin else "*")
                 handler.set_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
                 handler.set_header("Access-Control-Allow-Headers", "Content-Type")
                 handler.set_header("Access-Control-Allow-Credentials", "true")
+
+                return True
             else:
-                self.logger.error(f"Origin {origin} not allowed")
+                self.logger.info(f"Origin '{origin}' not allowed")
+                return False
         except Exception as e:
             self.logger.error(f"Error in add_cors_headers: {e}")
-            handler.set_status(500)
-    
+
     def add_get_request(self, path:str, handler_function:Callable):
         _logger = self.logger
         class DynamicHandler(RequestHandler):
             def set_default_headers(self):
-                self.application.api.add_cors_headers(self)
+                if not self.application.api.add_cors_headers(self):
+                    self.stop_processing=True
+            def prepare(self):
+                if getattr(self,"stop_processing",False):
+                    self.set_status(403)
+                    self.write({"error":"Origin not allowed"})
+                    self.finish()
             def get(self):
                 try:
                     response=handler_function()
@@ -71,7 +79,13 @@ class Api:
         _logger = self.logger
         class DynamicHandler(RequestHandler):
             def set_default_headers(self):
-                self.application.api.add_cors_headers(self)
+                if not self.application.api.add_cors_headers(self):
+                    self.stop_processing=True
+            def prepare(self):
+                if getattr(self,"stop_processing",False):
+                    self.set_status(403)
+                    self.write({"error":"Origin not allowed"})
+                    self.finish()
             def post(self, **kwargs):
                 try:
                     # Extract json body, if any, and url params
@@ -81,8 +95,13 @@ class Api:
 
                     # call handler func with url params and body
                     iRet = handler_function(data, **kwargs)
+                    if iRet is None:
+                        err="iRet is None in "+self.post.__name__+" function. " + str(sys.exc_info())
+                        _logger.error(err)
+                        raise Exception(err)
+                    if not isinstance(iRet,(str,bytes,dict)):
+                        iRet=json.loads(iRet)
                     self.write(iRet)
-                    # _logger.info(f"Post request on {handler_function.__name__}")
                 
                 except Exception as e:
                     err = "Error in post handler : " + str(sys.exc_info()) + " : " + str(e)
