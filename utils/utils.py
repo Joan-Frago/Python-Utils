@@ -8,6 +8,7 @@ import random
 from openpyxl import load_workbook
 from time import sleep,time
 import mysql.connector
+import json
 
 if sys.version_info < (3,9):
     from typing import List,Dict,Union
@@ -161,8 +162,7 @@ class DataBase:
             self.cursor = self.connection.cursor(dictionary=True)
         except Exception as e:
             err = str(e) + ":" + str(sys.exc_info())
-            return err
-        return ""
+            raise Exception(err)
     def close(self):
         try:
             self.connection.close()
@@ -353,3 +353,19 @@ def loadExcel(aFile:str, aSheet:str = "") -> any:
 def random_number(aInterval:ListType[int]):
     num=random.randrange(start=aInterval[0],stop=aInterval[1])
     return num
+# Get JSON data
+def get_json_data(aJsonFileDir:str) -> dict:
+    try:
+        iJsonFile=readFile(aFile=aJsonFileDir)
+        if not iJsonFile.strip(): # check if file is empty
+            raise ValueError(f"JSON file {aJsonFileDir} is empty")
+        iDic=json.loads(iJsonFile)
+        return iDic
+    except json.JSONDecodeError as e:
+        raise Exception(f"Invalid JSON format in {aJsonFileDir}: {e}")
+    except Exception as e:
+        raise Exception(f"Error reading JSON file {aJsonFileDir}: {e}")
+def dict2json(aDict:dict):
+    iJson=json.dumps(aDict)
+    return iJson
+
