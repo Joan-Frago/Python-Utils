@@ -144,11 +144,12 @@ class Timer:
         return final_time
 
 class DataBase:
-    def __init__(self,Host:str,User:str,Password:str,DataBase:str):
+    def __init__(self,Host:str,User:str,Password:str,DataBase:str,buffered:bool=False):
         self.aHost = Host
         self.aUser = User
         self.aPassword = Password
         self.aDataBase = DataBase
+        self.buffered = buffered
         self.connection = None
         self.cursor = None
     def connect(self):
@@ -159,7 +160,19 @@ class DataBase:
                 password=self.aPassword,
                 database=self.aDataBase
             )
-            self.cursor = self.connection.cursor(dictionary=True)
+            self.cursor = self.connection.cursor(dictionary=True,buffered=self.buffered)
+            # --------------------------------------------------------------------------------------------------#
+            #                                                                                                   #
+            #       UNREAD RESULT FOUND mysql                                                                   #
+            #                                                                                                   #
+            # The reason is that without a buffered cursor, the results are "lazily" loaded,                    #
+            # meaning that "fetchone" actually only fetches one row from the full result set of the query.      #
+            # When you will use the same cursor again, it will complain that you still have n-1 results         #
+            # (where n is the result set amount) waiting to be fetched. However, when you use a buffered        #
+            # cursor the connector fetches ALL rows behind the scenes and you just take one from the connector  #
+            # so the mysql db won't complain.                                                                   #
+            #                                                                                                   #
+            # --------------------------------------------------------------------------------------------------#
         except Exception as e:
             err = str(e) + ":" + str(sys.exc_info())
             raise Exception(err)
