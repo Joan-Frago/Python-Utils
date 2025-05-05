@@ -8,7 +8,6 @@ from tornado.ioloop import IOLoop
 import atexit
 import json
 
-sys.path.append("/opt/dev/Python-Utils/utils")
 from utils import Logger,Timer
 
 class Api:
