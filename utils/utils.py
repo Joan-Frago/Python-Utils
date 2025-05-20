@@ -9,6 +9,7 @@ from openpyxl import load_workbook
 from time import sleep,time
 import mysql.connector
 import json
+import re
 
 if sys.version_info < (3,9):
     from typing import List,Dict,Union
@@ -21,11 +22,16 @@ else:
     UnionType=lambda *args:args[0] | args[1]
 
 class Logger:
-    def __init__(self, log_path:str="log/pylog.log"):
+    def __init__(self,
+                 log_path:str="log/pylog.log"
+                 ,enable_rotation=False
+                 ,max_log_file_size=20000):
         self.log_file = log_path
         self.log_path = self.get_log_path()
-        self.rotate_log = False
-    
+        self.rotate_log = enable_rotation
+        self.iFileThreshold=max_log_file_size # file size in kbs
+        create_file(aFilePath=self.log_file)
+
     def get_log_path(self):
         return os.path.dirname(self.log_file)
     
@@ -38,58 +44,48 @@ class Logger:
         return wrapper
 
     def get_last_log(self) -> int:
+        """
+        Scans through the log directory and returns
+        the number of log files there are
+        """
         iFunc=GetFuncName(self.get_last_log)
         try:
+            if not os.path.exists(self.log_path):return 0
             all_logs=os.scandir(self.log_path)
             all_logs_lst=[i.name for i in all_logs]
             return len(all_logs_lst)
             
         except Exception as e:
             err=iFunc + ":" + str(sys.exc_info()) + ":" + str(e)
-            self.error(err)
-            raise Exception(err)
-    
-    def exec_log_file_rotation(self):
-        iFunc=GetFuncName(self.exec_log_file_rotation)
-        try:
-            last_num_log=self.get_last_log()
-            if last_num_log < 5:
-                if last_num_log == 1:
-                    self.log_file = self.log_file+str(1)
-                else:
-                    self.log_file = self.log_file[:-1]+str(last_num_log)
-            print(self.log_file)
-
-        except Exception as e:
-            err = iFunc + ":" + str(sys.exc_info()) + ":" + str(e)
-            self.error(err)
             raise Exception(err)
     
     def log_file_rotation(self):
-        iFunc=GetFuncName(self.log_file_rotation)
         try:
-            date = GetTime()
-            creation_time = datetime.fromtimestamp(os.path.getctime(self.log_file))
-            time_diff = date - creation_time
-
-            # debug
-            # time_diff = timedelta(days=10)
-            #
-            if time_diff > timedelta(days=7):
-                # create new archived log files
-                self.exec_log_file_rotation()
+            last_log_num=self.get_last_log()
+            if last_log_num<=0:iLogFileName=self.log_file
+            else:
+                if last_log_num==1:
+                    iLogFileName=self.log_file
+                else:
+                    iLogFileName=self.log_file.split("_")[0] if "_" in self.log_file else self.log_file
+                    iLogFileName+="_"+str(last_log_num+1)
+                iLogFileSize=get_file_size(aFile=iLogFileName)
+                if iLogFileSize<self.iFileThreshold:
+                    return
+                else:
+                    self.log_file=iLogFileName
         except Exception as e:
-            err = "Error in " + iFunc + ":" + str(sys.exc_info()) + ":" + str(e)
-            self.error(err)
-            raise Exception(err)
+            raise Exception(e)
 
     @on_register_func_call
     def write_log(self, aLog:str, type_log:str = "ERROR   "):
         if not os.path.exists(self.log_file):
             try:
-                os.makedirs(self.get_log_path(),exist_ok=True)
+                os.makedirs(self.log_path,exist_ok=True)
+                create_file(self.log_file)
             except Exception as e:
-                print(f"Error creating log file: {e}")
+                err=f"Error creating log file: {str(e)} : {str(sys.exc_info())}"
+                raise Exception(err)
 
         text = f"{datetime.now()} {type_log} {aLog}"
         writeFile(aFile=self.log_file,aContent=text,fileMode="a",newLine=True)
@@ -119,7 +115,7 @@ class Logger:
             return logger
 
 class DefaultLogger(Logger):
-    def write_log(self,type_log:str="ERROR   ",aLog:str="No output specified"):
+    def write_log(self,aLog:str="No output specified",type_log:str="ERROR   "):
         text = f"{datetime.now()} {type_log} {aLog}"
         print(text, file=sys.stdout, flush=True)
 
@@ -141,6 +137,8 @@ class Timer:
         elif self.finish_time >= 86400:
             final_time = self.finish_time / 86400
             final_time = str(round(final_time,3)) + " days"
+        else:
+            final_time=str(round(self.finish_time,3))+" seconds"
         return final_time
 
 class DataBase:
@@ -178,8 +176,8 @@ class DataBase:
             raise Exception(err)
     def close(self):
         try:
-            self.connection.close()
-            self.cursor.close()
+            if self.connection is not None: self.connection.close()
+            if self.cursor is not None: self.cursor.close()
             return ""
         except Exception as e:
             err = str(e) + ":" + str(sys.exc_info())
@@ -193,25 +191,59 @@ class DataBase:
             err = []
             err.append(str(e))
             return err
-    def execute(self,aQuery,aParams=None):
+    def execute(self,aQuery,aParams=None,DebugMode=False) -> str | None:
         try:
-            if aParams: self.cursor.execute(aQuery,aParams)
-            else:
-                self.cursor.execute(aQuery)
-            self.connection.commit()
+            if DebugMode:
+                for param in aParams:
+                    aQuery=re.sub(pattern=r"%s",repl=str(param),string=aQuery,count=1)
+                return aQuery
+            if self.cursor is not None and self.connection is not None:
+                if aParams: self.cursor.execute(aQuery,aParams)
+                else:
+                    self.cursor.execute(aQuery)
+                self.connection.commit()
         except Exception as e:
-            err = str(e) + ":" + str(sys.exc_info())
+            err = "Error in DataBase.execute function: "+str(e) + ":" + str(sys.exc_info())
             raise Exception(err)
 
 def clear_screen():
     try:
         os.system("clear")
-    except Exception:
+    except OSError:
         os.system("cls")
     except Exception as e:
-        print("Could not clear screen because of: "+e)
+        print("Could not clear screen because of: "+str(e))
 def wait(seconds:float):
     sleep(seconds)
+
+def NormDate(aDate:str):
+	"""
+	Normalize a date coming from raw html form
+	
+	It must enter with the following format
+	* 2023-12-20T15:29
+
+	It must return with the following format
+	* 2023-12-20 15:29
+	"""
+	if not "T" in aDate:
+		return aDate
+	iDate=aDate.replace("T"," ")
+	return iDate
+
+def get_file_size(aFile):
+    try:
+        iFileStats=os.stat(aFile)
+        iFileSize=iFileStats.st_size
+        iFileSize=iFileSize/1000
+        return iFileSize
+    except Exception as e:
+        raise Exception(e)
+def create_file(aFilePath:str):
+    try:
+        open(aFilePath,"x")
+    except FileExistsError:
+        pass
 def GetTime(aTimeZone:str="Europe/Madrid",accuracy:str="ml"):
     """
     ## Get the actual time
@@ -277,40 +309,44 @@ def writeFile(aFile:str,aContent:str,fileMode="w",newLine:bool=False):
     except IOError as e:
         return f"Could not write to {aFile} due to {e}"
 # Get Json Data
-def getJsonData(aUrl:str,headers=None) -> any:
+def getJsonData(aUrl:str,headers=None) -> dict:
     try:
         response = requests.get(aUrl,headers)
         if response.status_code == 200:
             data = response.json()
         else:
-            return f"Error: {response.status_code}"
+            return {"error":str(response.status_code)}
         return data
     except Exception as e:
-        return f"ERROR: {e}"
+        return {"ERROR":str(e)}
 # Post Json Data
-def postJsonData(aUrl:str,body:str) -> any:
+def postJsonData(aUrl:str,body:str) -> dict:
     try:
         response = requests.post(aUrl,body)
         if response.status_code == 200:
             data = response.json()
         else:
-            return f"Error: {response.status_code}"
+            return {"Error":f"{str(response.status_code)}"}
         return data
     except Exception as e:
-        return f"ERROR: {e}"
+        return {"ERROR":str(e)}
 # Read a CSV
 def csv2Dict(aFile:str,aDelimiter=None) -> dict:
     try:
-        csvDict = []
+        csvDict={}
         with open(aFile,mode="r") as file:
             csv2dict = csv.DictReader(file,aDelimiter)
             for row in csv2dict:
-                csvDict.append(row)
+                csvDict[str(row)]=row
         return csvDict
     except Exception as e:
-        return e
+        return {"error":str(e)}
+def GetTimestamp() -> int:
+    iDate=datetime.now()
+    iTs=int(datetime.timestamp(iDate))
+    return iTs
 # Convert Date to Timestamp
-def Date2Timestamp(dateTime:str) -> float:
+def Date2Timestamp(dateTime) -> float:
     timestamp = datetime.timestamp(dateTime)
     return timestamp
 # Convert Timestamp to Date
@@ -318,27 +354,27 @@ def Timestamp2Date(timeStamp:int,timeZone=None):
     date = datetime.fromtimestamp(timeStamp,timeZone)
     return date
 # Calculate the difference between two timestamp
-def TimestampTimeDiff(timeStamp:int) -> int:
-    iTime = datetime.now()
-    iTs = datetime.timestamp(iTime)
-    timeDiff = iTs - timeStamp
+def TimestampTimeDiff(aTimestamp,aTimestamp2=None) -> int:
+    if aTimestamp2 is not None:
+        timeDiff=aTimestamp2-aTimestamp
+    else:
+        iTime=datetime.now()
+        iTs=int(datetime.timestamp(iTime))
+        timeDiff = iTs - timeStamp
     return timeDiff
 # Calculate the difference between two date times
-def DateTimeTimeDiff(dateTime:int) -> int:
+def DateTimeTimeDiff(dateTime) -> int:
     iTime = datetime.now()
     timeDiff = iTime - dateTime
     return timeDiff
 # Check if a number is prime
 def IsPrime(aNum:int) -> bool:
     try:
-        if isinstance(aNum,int):
-            for i in range(1, aNum):
-                if aNum % i == 0 and i != aNum:
-                    return True
-                else:
-                    return False
-        else:
-            print("Please provide an int to check if number is prime")
+        for i in range(1, aNum):
+            if aNum % i == 0 and i != aNum:
+                return True
+            else:
+                return False
     except Exception as e:
         print(f"Error cheking if number is prime: {e}")
 # Calculate the factorial of a number
@@ -355,8 +391,9 @@ def Factorial(aNum:int) -> int:
     except Exception as e:
         print(f"Could not calculate the factorial of number {aNum}. Error: {e}")
 # Load an excel file
-def loadExcel(aFile:str, aSheet:str = "") -> any:
+def loadExcel(aFile:str, aSheet:str = ""):
     wb = load_workbook(aFile)
+    if wb is None: return None
     if aSheet != "":
         ws = wb[aSheet]
     else:
