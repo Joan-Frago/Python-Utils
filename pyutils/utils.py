@@ -360,7 +360,7 @@ def TimestampTimeDiff(aTimestamp,aTimestamp2=None) -> int:
     else:
         iTime=datetime.now()
         iTs=int(datetime.timestamp(iTime))
-        timeDiff = iTs - timeStamp
+        timeDiff = iTs - aTimestamp
     return timeDiff
 # Calculate the difference between two date times
 def DateTimeTimeDiff(dateTime) -> int:

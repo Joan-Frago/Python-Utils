@@ -8,7 +8,7 @@ from tornado.ioloop import IOLoop
 import atexit
 import json
 
-from utils import Logger,Timer
+from pyutils.utils import Logger,Timer
 
 class Api:
     def __init__(self,Port:int=8000,logger: Logger = None,init_message:str=None,exit_message:str=None,allowed_origins:List[str]=None):
