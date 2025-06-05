@@ -3,6 +3,7 @@ bin-debug/
 bin-release/
 [Oo]bj/
 [Bb]in/
+pyutils.egg-info/
 
 # Other files and folders
 .settings/
