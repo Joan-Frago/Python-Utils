@@ -172,16 +172,16 @@ class DataBase:
             #                                                                                                   #
             # --------------------------------------------------------------------------------------------------#
         except Exception as e:
-            err = str(e) + ":" + str(sys.exc_info())
+            err = "Error trying to connect to database : DataBase.connect func : "+str(e) + ":" + str(sys.exc_info())
             raise Exception(err)
     def close(self):
         try:
             if self.connection is not None: self.connection.close()
             if self.cursor is not None: self.cursor.close()
-            return ""
         except Exception as e:
-            err = str(e) + ":" + str(sys.exc_info())
-            return err
+            err = "Error trying to close data base : DataBase.close func : "
+            err+=str(e) + ":" + str(sys.exc_info())
+            raise Exception(err)
     def fetchdata(self):
         if self.cursor is None: return []
         try:
@@ -279,7 +279,8 @@ def GetTime(aTimeZone:str="Europe/Madrid",accuracy:str="ml"):
                 iTime=iTime[:-28]
         return iTime
     except Exception as e:
-        raise
+        err="Error in GetTime func : "+str(e)+" : "+str(sys.exc_info())
+        raise Exception(err)
 def GetFuncName(aFunc):
     return aFunc.__name__
 
