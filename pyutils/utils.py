@@ -188,9 +188,7 @@ class DataBase:
             data = self.cursor.fetchall()
             return data if isinstance(data, list) else []
         except Exception as e:
-            err = []
-            err.append(str(e))
-            return err
+            raise Exception(e)
     def execute(self,aQuery,aParams=None,DebugMode=False) -> str | None:
         try:
             if DebugMode:
@@ -199,12 +197,25 @@ class DataBase:
                 return aQuery
             if self.cursor is not None and self.connection is not None:
                 if aParams: self.cursor.execute(aQuery,aParams)
-                else:
-                    self.cursor.execute(aQuery)
+                else: self.cursor.execute(aQuery)
                 self.connection.commit()
         except Exception as e:
             err = "Error in DataBase.execute function: "+str(e) + ":" + str(sys.exc_info())
             raise Exception(err)
+    def get_last_row_id(self):
+        try:
+            if self.cursor is None:
+                err="In get_last_row_id function: "
+                err+="Can't get the id of the last row fetched because "
+                err+="there is no cursor initialized"
+                raise Exception(err)
+            
+            return self.cursor.lastrowid
+        except Exception as e:
+            err="Error in get_last_row_id function: "
+            err+=str(e)+" : "+str(sys.exc_info())
+            raise Exception(e)
+        
 
 def clear_screen():
     try:
@@ -244,7 +255,15 @@ def create_file(aFilePath:str):
         open(aFilePath,"x")
     except FileExistsError:
         pass
-def GetTime(aTimeZone:str="Europe/Madrid",accuracy:str="ml"):
+def string2bytes(aString:str) -> bytes:
+    try:
+        byte_str=aString.encode("utf-8")
+        return byte_str
+    except Exception as e:
+        err="Int string2bytes function. Error: Could not "
+        err+="encode the given string : "+str(e)+str(sys.exc_info())
+        raise Exception(err)
+def GetTime(aTimeZone:str="Europe/Madrid",accuracy:str="ml",is_string:bool=True) -> datetime | str:
     """
     ## Get the actual time
 
@@ -261,7 +280,11 @@ def GetTime(aTimeZone:str="Europe/Madrid",accuracy:str="ml"):
     """
     # 2025-04-27 21:13:57.904277+02:00
     try:
-        iTime=str(datetime.now(pytz.timezone(aTimeZone)))
+        iTime=datetime.now(pytz.timezone(aTimeZone))
+        
+        if not is_string: return iTime
+        
+        iTime=str(iTime)
         match accuracy:
             case "ml":
                 iTime=iTime[:-6]
@@ -292,9 +315,9 @@ def readFile(aFile:str) -> str:
                 content=file.read()
             return content
         else:
-            return "Please provide a path for file reading"
+            raise Exception("Please provide a path for file reading")
     except IOError as e:
-        return f"Could not read {aFile} contents due to {e}"
+        raise Exception(f"Could not read {aFile} contents due to {e}")
 # Write a File
 def writeFile(aFile:str,aContent:str,fileMode="w",newLine:bool=False):
     if newLine == True:
@@ -310,25 +333,41 @@ def writeFile(aFile:str,aContent:str,fileMode="w",newLine:bool=False):
     except IOError as e:
         return f"Could not write to {aFile} due to {e}"
 # Get Json Data
-def getJsonData(aUrl:str,headers=None) -> dict:
+def getJsonData(aUrl:str,aParams:list[tuple] | None=None,aAuth:tuple[str] | None=None,aHeaders:dict[str] | None=None) -> dict | list:
+    """
+    aParams --> list of tuples
+    """
     try:
-        response = requests.get(aUrl,headers)
+        response = requests.get(url=aUrl,params=aParams,auth=aAuth,headers=aHeaders)
         if response.status_code == 200:
-            data = response.json()
+            return response.json()
         else:
-            return {"error":str(response.status_code)}
-        return data
+            return {"error":str(response.status_code)
+                    ,"reason":str(response.reason)
+                    ,"description":str(response.text)}
     except Exception as e:
         return {"ERROR":str(e)}
 # Post Json Data
-def postJsonData(aUrl:str,body:str) -> dict:
+def postJsonData(aUrl:str,aData:dict) -> dict:
     try:
-        response = requests.post(aUrl,body)
+        response = requests.post(url=aUrl,data=aData)
         if response.status_code == 200:
-            data = response.json()
+            return response.json()
         else:
-            return {"Error":f"{str(response.status_code)}"}
-        return data
+            return {"error":str(response.status_code)
+                    ,"reason":str(response.reason)
+                    ,"description":str(response.text)}
+    except Exception as e:
+        return {"ERROR":str(e)}
+def putJsonData(aUrl:str,aData:dict,aAuth:tuple[str] | None=None,aHeaders:dict | None=None) -> dict:
+    try:
+        response = requests.put(url=aUrl,data=aData,headers=aHeaders,auth=aAuth)
+        if response.status_code == 200:
+            return response.json()
+        else:
+            return {"error":str(response.status_code)
+                    ,"reason":str(response.reason)
+                    ,"description":str(response.text)}
     except Exception as e:
         return {"ERROR":str(e)}
 # Read a CSV
@@ -342,9 +381,12 @@ def csv2Dict(aFile:str,aDelimiter=None) -> dict:
         return csvDict
     except Exception as e:
         return {"error":str(e)}
-def GetTimestamp() -> int:
-    iDate=datetime.now()
-    iTs=int(datetime.timestamp(iDate))
+def GetEpochTimestamp(aDate:tuple[int] |None=None):
+    if aDate is None:
+        iDate=datetime.now()
+    else:
+        iDate=datetime(aDate[0],aDate[1],aDate[2],aDate[3],aDate[4],aDate[5])
+    iTs=datetime.timestamp(iDate)
     return iTs
 # Convert Date to Timestamp
 def Date2Timestamp(dateTime) -> float:
