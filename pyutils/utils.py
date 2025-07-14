@@ -319,19 +319,19 @@ def readFile(aFile:str) -> str:
     except IOError as e:
         raise Exception(f"Could not read {aFile} contents due to {e}")
 # Write a File
-def writeFile(aFile:str,aContent:str,fileMode="w",newLine:bool=False):
+def writeFile(aFile:str,aContent:str|bytes,fileMode="w",newLine:bool=False):
     if newLine == True:
-        aNewLine="\n"
-    else:
-        aNewLine=""
+        if isinstance(aContent,bytes): aContent+=b'\n'
+        else: aContent+='\n'
+
     try:
         if aFile != "":
             with open(aFile,fileMode) as file:
-                file.write(f"{aContent}{aNewLine}")
+                file.write(aContent)
         else:
-            return "Please provide a path for file reading"
+            raise IOError("No file path provided")
     except IOError as e:
-        return f"Could not write to {aFile} due to {e}"
+        return f"Could not write to {aFile} due to: {e}"
 # Get Json Data
 def getJsonData(aUrl:str,aParams:list[tuple] | None=None,aAuth:tuple[str] | None=None,aHeaders:dict[str] | None=None) -> dict | list:
     """
