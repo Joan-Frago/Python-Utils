@@ -87,10 +87,25 @@ class Api:
                     self.finish()
             def post(self, **kwargs):
                 try:
-                    # Extract json body, if any, and url params
-                    body = self.request.body.decode("utf-8")
-                    json_body = self.request.headers.get("Content-Type") == "application/json"
-                    data = body if not json_body else json.loads(body)
+                    data={}
+
+                    # Check for files
+                    files=self.request.files.get("file",[])
+
+                    if files:
+                        data={"files":{}}
+
+                        for f in files:
+                            filename=f["filename"]
+                            body=f["body"]
+
+                            data["files"][filename]=body
+
+                    else:
+                        body = self.request.body.decode("utf-8")
+                        json_body = self.request.headers.get("Content-Type") == "application/json"
+                        data = body if not json_body else json.loads(body)
+
 
                     # call handler func with url params and body
                     iRet = handler_function(data, **kwargs)
