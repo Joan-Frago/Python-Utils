@@ -3,6 +3,7 @@ bin-debug/
 bin-release/
 [Oo]bj/
 [Bb]in/
+pyutils.egg-info/
 
 # Other files and folders
 .settings/
@@ -10,6 +11,7 @@ bin-release/
 
 # Python virtual environment
 venv3.10/
+venv310/
 
 # Executables
 *.swf

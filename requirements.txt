@@ -1,7 +1,11 @@
-certifi==2024.12.14
+certifi==2025.1.31
 charset-normalizer==3.4.1
 et_xmlfile==2.0.0
 idna==3.10
+mysql-connector==2.2.9
 openpyxl==3.1.5
+pytz==2025.2
+-e git+https://github.com/Joan-Frago/Python-Utils.git@fc0a1e6673d12c13f53693b65c789522587aa72b#egg=pyutils
 requests==2.32.3
+tornado==6.4.2
 urllib3==2.3.0
