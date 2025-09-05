@@ -308,10 +308,10 @@ def GetFuncName(aFunc):
     return aFunc.__name__
 
 # Read a File
-def readFile(aFile:str) -> str:
+def readFile(aFile:str,aMode:str="r") -> str:
     try:
         if aFile != "":
-            with open(aFile,"r") as file:
+            with open(aFile,aMode) as file:
                 content=file.read()
             return content
         else:
